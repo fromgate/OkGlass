@@ -57,6 +57,7 @@ public class OGUtil extends FGUtilCore implements CommandExecutor {
 			else {
 				plg.gadgets.setPlayerCanSeeGadget(p, false);
 				printEnDis(p, "msg_cmdshow",false);
+				plg.gadgets.sendGadgetsToAll();
 			}
 		} else if (cmd.equalsIgnoreCase("cfg")){
 			plg.gadgets.printGadgetList(p);

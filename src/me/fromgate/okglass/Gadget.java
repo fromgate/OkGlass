@@ -69,7 +69,7 @@ public abstract class Gadget {
 		if (str.length()>16) str = str.substring(0, 15);
 		return ChatColor.translateAlternateColorCodes('&', str);
 	}
-
+	
 	public abstract void init();
 	public abstract String getName();
 	public abstract String getResultName();

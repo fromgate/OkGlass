@@ -141,10 +141,20 @@ public class Gadgets {
 		Objective obj = brd.getObjective(ChatColor.GOLD+"OK'GLASS");
 		if (obj == null) obj = brd.registerNewObjective(ChatColor.GOLD+"OK'GLASS", "dummy");
 		obj.setDisplaySlot(DisplaySlot.SIDEBAR);
-		for (int i = 0; i<gadgets.size(); i++){
+		for (int i = gadgets.size()-1; i>=0; i--){
 			Gadget g = gadgets.get(i);
 			Score score=obj.getScore(Bukkit.getOfflinePlayer(g.getScoreName()));
-			score.setScore(g.getResultValue());
+			try {
+				score.setScore(g.getResultValue());
+			} catch (Exception e){
+				u.log("Failed to interact with gadget "+g.getName()+". Gadget was disabled.");
+				u.log("Exception message: "+e.getMessage());
+				gadgets.remove(i);
+			} catch (Error e){
+				u.log("Failed to interact with gadget "+g.getName()+". Gadget was disabled.");
+				u.log("Error message: "+e.getMessage());
+				gadgets.remove(i);
+			}
 		}
 	}
 
@@ -187,7 +197,7 @@ public class Gadgets {
 			}
 		}, 200,20*plg.refreshdelay);
 	}
-	
+
 	public void printGadgetList(Player p){
 		if (gadgets.isEmpty()) u.printMSG(p, "gl_gadgjetlistempty");
 		else {
