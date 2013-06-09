@@ -22,14 +22,24 @@
 package me.fromgate.okglass;
 
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.bukkit.ChatColor;
+import org.bukkit.Server;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 
 
 public abstract class Gadget {
-	public OkGlass plg;
+	private OkGlass plg;
 	YamlConfiguration cfg;
 	boolean enabled = true;
+	private Player currentplayer = null;
+	private Map<String,Integer> result;
+	
+	
 	
 	public boolean isEnabled(){
 		return enabled;
@@ -39,11 +49,27 @@ public abstract class Gadget {
 		this.enabled = enabled;
 	}
 	
-	public void initGadget(OkGlass plugin, YamlConfiguration cfg){
+	protected void initGadget(OkGlass plugin, YamlConfiguration cfg){
 		this.cfg = cfg;
 		plg = plugin;
 		setEnabled(loadBoolean ("enabled",true));
-		init();
+		try{
+		if (this.enabled) onEnable();
+		} catch (Throwable e){
+			log("Gadget initialization failed!");
+			if (plg.debug) e.printStackTrace();
+			this.enabled = false;
+		}
+	}
+	
+	protected void disableGadget(){
+		try{
+		if (this.enabled) onDisable();
+		} catch (Throwable e){
+			log("Failed to disable Gadget");
+			if (plg.debug) e.printStackTrace();
+			this.enabled = false;
+		}
 	}
 
 	public int loadInt(String key, int defvalue){
@@ -62,19 +88,53 @@ public abstract class Gadget {
 		return v;
 	}
 	
-	public String getScoreName(){
-		String str = getResultName();
-		if ((str == null)||(str.isEmpty())) str = getName();
-		if ((str == null)||(str.isEmpty())) str = this.getClass().getName();
-		if (str.length()>16) str = str.substring(0, 15);
-		return ChatColor.translateAlternateColorCodes('&', str);
+	
+	public void addResult(String name, int value){
+		if (result != null) result.put(name, value);
 	}
 	
-	public abstract void init();
+	protected Map<String,Integer> getGadgetResult(Player p){
+		currentplayer = p;
+		result = new HashMap<String,Integer>();
+		process();
+		if ((result==null)||(result.isEmpty())) return null;
+		Map<String,Integer> newrst = new HashMap<String,Integer>();
+		for (String mapkey : result.keySet()){
+			String newkey = ChatColor.translateAlternateColorCodes('&', mapkey);
+			if (newkey.equalsIgnoreCase(ChatColor.stripColor(newkey))) 
+				newkey = ChatColor.translateAlternateColorCodes('&', plg.defaultcolor.isEmpty() ? newkey : "&"+plg.defaultcolor+newkey);
+			if (newkey.length()>16) newkey = newkey.substring(0,15);
+			newrst.put(newkey, result.get(mapkey));
+		}
+		return newrst;
+	}
+	
+	protected String getGadgetName(){
+		String str = getName();
+		if ((str == null)||(str.isEmpty())) str = this.getClass().getName();
+		return str;
+	}
+	
+	public Player getPlayer(){
+		return this.currentplayer;
+	}
+	
+	public void log(String msg){
+		plg.u.log("["+getName()+"] "+msg);
+	}
+	
+	public Server getServer(){
+		return plg.getServer();
+	}
+	
+	public JavaPlugin getOkGlassPlugin(){
+		return plg;
+	}
+	
+	public abstract void onEnable();	
 	public abstract String getName();
-	public abstract String getResultName();
-	public abstract int getResultValue();
+	public abstract void onDisable();
+	public abstract void process();
 
-
-
+	
 }

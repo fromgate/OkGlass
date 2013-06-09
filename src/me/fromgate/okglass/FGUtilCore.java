@@ -36,6 +36,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.MemorySection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -130,6 +131,10 @@ public abstract class FGUtilCore {
 		addMSG ("lst_title", "String list:");
 		addMSG ("lst_footer", "Page: [%1% / %2%]");
 		addMSG ("lst_listisempty", "List is empty");
+		addMSG ("msg_config", "Configuration");
+		addMSG ("cfgmsg_general.check-updates", "Check updates: %1%");
+		addMSG ("cfgmsg_general.language", "Language: %1%");
+		addMSG ("cfgmsg_general.language-save", "Save translation file: %1%");
 	}
 
 
@@ -963,7 +968,7 @@ public abstract class FGUtilCore {
 	public boolean rollDiceChance (int chance){
 		return (random.nextInt(100)<chance);
 	}
-	
+
 	public int getRandomInt(int maxvalue){
 		return random.nextInt(maxvalue);
 	}
@@ -1004,6 +1009,24 @@ public abstract class FGUtilCore {
 		for (String s : str)
 			if (!s.matches("[1-9]+[0-9]*")) return false;
 		return true;
+	}
+	
+	public void printConfig(Player p, int page, int lpp, boolean section, boolean usetranslation){
+		List<String> cfgprn = new ArrayList<String>();
+		if (!plg.getConfig().getKeys(true).isEmpty()) 
+			for (String k : plg.getConfig().getKeys(true)){
+					Object objvalue = plg.getConfig().get(k);
+					String value = objvalue.toString();
+					String str = k;
+					if ((objvalue instanceof Boolean)&&(usetranslation)) value = EnDis((Boolean)objvalue);
+					if (objvalue instanceof MemorySection){
+						if (!section) continue;
+					} else str = k +" : "+value;
+					if (usetranslation) str = getMSG ("cfgmsg_"+k,value); 
+					cfgprn.add(str);
+				}
+		String title = "&6&l"+this.version_name+" v"+des.getVersion()+" &r&6| "+getMSG("msg_config",'6');
+		printPage (p, cfgprn, page, title,"",false);
 	}
 
 

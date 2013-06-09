@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -110,8 +111,8 @@ public class Gadgets {
 						g.initGadget(plg,cfg);
 						if (g.isEnabled()) {
 							gadgets.add(g);
-							u.log("Gadget loaded: "+g.getName());
-						} else u.log("Gadjet "+g.getName()+" was not loaded (disabled at the gadgets.yml)");
+							u.log("Gadget loaded: "+g.getGadgetName());
+						} else u.log("Gadjet "+g.getGadgetName()+" was not loaded (disabled at the gadgets.yml)");
 					} catch (Exception e3){
 						u.log("Failed to gadget(s) from class: "+className);
 						continue;
@@ -129,53 +130,64 @@ public class Gadgets {
 
 	public void initScoreBoard(){
 		brd = plg.getServer().getScoreboardManager().getNewScoreboard();
-		Objective obj = brd.getObjective(ChatColor.GOLD+"OK'GLASS");
-		if (obj == null) obj = brd.registerNewObjective(ChatColor.GOLD+"OK'GLASS", "dummy");
+		Objective obj = brd.getObjective(getTitle());
+		if (obj == null) obj = brd.registerNewObjective(getTitle(), "dummy");
 	}
 
 
-	public void refreshGadgets(){
+	public void refreshGadgets(Player p){
 		if (gadgets.isEmpty()) return;
-		brd.clearSlot(DisplaySlot.SIDEBAR);
-		clearGadgets();
-		Objective obj = brd.getObjective(ChatColor.GOLD+"OK'GLASS");
-		if (obj == null) obj = brd.registerNewObjective(ChatColor.GOLD+"OK'GLASS", "dummy");
+		Set<String> showngadgets  = new HashSet<String>();
+		Objective obj = brd.getObjective(getTitle());
+		if (obj == null) obj = brd.registerNewObjective(getTitle(), "dummy");
 		obj.setDisplaySlot(DisplaySlot.SIDEBAR);
 		for (int i = gadgets.size()-1; i>=0; i--){
 			Gadget g = gadgets.get(i);
-			Score score=obj.getScore(Bukkit.getOfflinePlayer(g.getScoreName()));
 			try {
-				score.setScore(g.getResultValue());
+				Map<String,Integer> rst = g.getGadgetResult(p);
+				if ((rst == null)||(rst.isEmpty())) continue; //пустых пропускаем
+				for (String key : rst.keySet()){
+					Score score = obj.getScore(Bukkit.getOfflinePlayer(key));
+					showngadgets.add(key);
+					score.setScore(rst.get(key));
+				}
+
 			} catch (Exception e){
-				u.log("Failed to interact with gadget "+g.getName()+". Gadget was disabled.");
-				u.log("Exception message: "+e.getMessage());
+				u.log("Failed to interact with gadget "+g.getGadgetName()+". Gadget was disabled.");
 				gadgets.remove(i);
+				if (plg.debug) e.printStackTrace();
 			} catch (Error e){
-				u.log("Failed to interact with gadget "+g.getName()+". Gadget was disabled.");
-				u.log("Error message: "+e.getMessage());
+				u.log("Failed to interact with gadget "+g.getGadgetName()+". Gadget was disabled.");
 				gadgets.remove(i);
+				if (plg.debug) e.printStackTrace();
 			}
 		}
+		for (OfflinePlayer op : brd.getPlayers())
+			if (!showngadgets.contains(op.getName()))
+				brd.resetScores(op);
 	}
 
 	public void clearGadgets(){
-		Objective obj = brd.getObjective(ChatColor.GOLD+"OK'GLASS");
-		if (obj == null) obj = brd.registerNewObjective(ChatColor.GOLD+"OK'GLASS", "dummy");
+		Objective obj = brd.getObjective(getTitle());
+		if (obj == null) obj = brd.registerNewObjective(getTitle(), "dummy");
 		for (OfflinePlayer op : brd.getPlayers())
 			brd.resetScores(op);
 	}
 
 	public void sendGadgetsToAll(){
 		Set<Player> cansee = new HashSet<Player>();
-		clearGadgets();
+		//clearGadgets();
 		for (Player p : Bukkit.getOnlinePlayers()){
-			if (!p.hasPermission("okglass.gadget")) continue;
+			if (!p.hasPermission("okglass.showhide")) continue;
 			p.setScoreboard(brd);
 			if (isPlayerCanSeeGadget(p)) cansee.add(p);
 		}
+
 		if (!cansee.isEmpty()){
-			refreshGadgets();
-			for (Player p : cansee) p.setScoreboard(brd);
+			for (Player p : cansee) {
+				refreshGadgets(p);	
+				p.setScoreboard(brd);
+			}
 		}
 	}
 
@@ -203,10 +215,23 @@ public class Gadgets {
 		else {
 			String gs = "";
 			for (int i = 0; i<gadgets.size();i++)
-				gs = gs+", "+gadgets.get(i).getName();
+				gs = gs+", "+gadgets.get(i).getGadgetName();
 			gs = gs.replaceFirst(", ","");
 			u.printMSG(p, "gl_gadgjetlist",gadgets.size(),"&e"+gs);
 		}
+	}
+
+	public String getTitle(){
+		return ChatColor.translateAlternateColorCodes('&', plg.brdname);
+	}
+	
+	public void disableAllGadgets(){
+		for (Gadget g : gadgets){
+			g.disableGadget();
+			g.log("Disabled...");
+			g = null;
+		}
+		gadgets.clear();
 	}
 
 

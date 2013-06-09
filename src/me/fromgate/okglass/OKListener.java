@@ -38,7 +38,7 @@ public class OKListener implements Listener{
 	public void onJoin (PlayerJoinEvent event){
 		plg.u.UpdateMsg(event.getPlayer());
 		plg.gadgets.setPlayerCanSeeGadget(event.getPlayer(), true);
-		plg.gadgets.refreshGadgets();
+		plg.gadgets.refreshGadgets(event.getPlayer());
 	}
 
 }

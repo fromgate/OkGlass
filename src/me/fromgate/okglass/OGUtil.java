@@ -43,15 +43,19 @@ public class OGUtil extends FGUtilCore implements CommandExecutor {
 		addCmd("show", "showhide", "hlp_show", "/gadget [show]");
 		addCmd("hide", "showhide", "hlp_hide", "/gadget hide");
 		addCmd("cfg", "config", "hlp_cfg", "/gadget cfg");
+		addCmd("reload", "config", "hlp_reload", "/gadget reload");
 	}
 	
 	public boolean executeCommand(Player p, String cmd){
 		if (cmd.equalsIgnoreCase("help")){
 			PrintHlpList(p, 1, 100);
 		} else if (cmd.equalsIgnoreCase("show")){
-			plg.gadgets.setPlayerCanSeeGadget(p, !plg.gadgets.isPlayerCanSeeGadget(p));
-			printEnDis(p, "msg_cmdshow",plg.gadgets.isPlayerCanSeeGadget(p));
-			plg.gadgets.sendGadgetsToAll();
+			if (plg.gadgets.isPlayerCanSeeGadget(p)) printMSG (p,"msg_alreadyshown");
+			else {
+				plg.gadgets.setPlayerCanSeeGadget(p, true);
+				printEnDis(p, "msg_cmdshow",true);
+				plg.gadgets.sendGadgetsToAll();
+			}
 		} else if (cmd.equalsIgnoreCase("hide")){
 			if (!plg.gadgets.isPlayerCanSeeGadget(p)) printMSG (p,"msg_alreadyhidden");
 			else {
@@ -59,7 +63,16 @@ public class OGUtil extends FGUtilCore implements CommandExecutor {
 				printEnDis(p, "msg_cmdshow",false);
 				plg.gadgets.sendGadgetsToAll();
 			}
+		} else if (cmd.equalsIgnoreCase("reload")){
+			plg.gadgets.clearGadgets();
+			plg.gadgets.disableAllGadgets();
+			plg.gadgets.init();
+			plg.reloadConfig();
+			plg.reloadCfg();
+			plg.gadgets.sendGadgetsToAll();
+			printMSG(p,"msg_reload");
 		} else if (cmd.equalsIgnoreCase("cfg")){
+			printConfig(p, 1, 1000, false, true);
 			plg.gadgets.printGadgetList(p);
 		} else return false;
 		return true;
@@ -71,17 +84,28 @@ public class OGUtil extends FGUtilCore implements CommandExecutor {
 		addMSG ("gl_gadgjetlist", "Installed %1% gadgets: %2%");
 		addMSG ("msg_cmdshow", "Ok'Glass display is");
 		addMSG ("msg_alreadyhidden", "Ok'Glass window is already hidden!");
+		addMSG ("msg_alreadyshown", "Ok'Glass window is already visible!");
+		addMSG ("msg_reload", "Reloaded...");
 		addMSG ("hlp_show", "%1% - show (than hide) Ok'Glass window");
 		addMSG ("hlp_hide", "%1% - hide Ok'Glass window");
-		addMSG ("hlp_cfg", "%1% - display installed gadgets list");
+		addMSG ("hlp_cfg", "%1% - display current configuration");
+		addMSG ("hlp_reload", "%1% - reload plugin configuration and reload gadgets");
+		addMSG ("cfgmsg_OkGlass.display-refresh-delay", "Display refresh rate (seconds): %1%");
+		addMSG ("cfgmsg_OkGlass.title", "OkGlass window title (default: OK'GLASS): %1%");
+		addMSG ("cfgmsg_OkGlass.debug", "Debug mode: %1%");
+		addMSG ("cfgmsg_OkGlass.default-color", "Default color of the gadget's title: %1%");
+		
+		
 	}
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String cmdLabel, String[] args) {
 		if (sender instanceof Player){
 			Player p = (Player) sender;
-			if ((args.length==0)&&(checkCmdPerm(p, "show"))) return executeCommand(p, "show");
-			else if ((args.length>0)&&(checkCmdPerm(p, args[0]))) return executeCommand(p, args[0]);
+			if ((args.length==0)&&(checkCmdPerm(p, "show"))) {
+				if (plg.gadgets.isPlayerCanSeeGadget(p)) return executeCommand(p, "hide");
+				else return executeCommand(p, "show");
+			} else if ((args.length>0)&&(checkCmdPerm(p, args[0]))) return executeCommand(p, args[0]);
 			else printMSG(p, "cmd_cmdpermerr",'c');
 		}
 		return false;

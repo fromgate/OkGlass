@@ -34,15 +34,23 @@ public class OkGlass extends JavaPlugin {
 	String language="english";
 	int refreshdelay = 10;
 	
+	String brdname = "&6OK'GLASS";
+	boolean debug = false;
+	String defaultcolor = "a";
+	
+	
 	Gadgets gadgets;
 	
 	
-	/* Память+, пинг (может пинг до какого-то узла?)+
-	 * пинг до игрока+
-	 * Количество чанков в памяти+
-	 * Количество энтитей+
-	 * Количество игроков
-	 * TPS+
+	/* 
+	 * TODO
+	 * + Поддержка персональных гаджетов - т.е. отрисовка гаджета применительно к имени игрока
+	 * + Возможность смены заголовка окна
+	 * + Исправить пермишен
+	 * - не отрисовывать, а обновлять гаджеты
+	 * +/- GadgetEntity - выдает null
+	 * +/- неверно отображение памяти (преобразование long в int???)
+	 * 
 	 */
 	
 	@Override
@@ -59,6 +67,7 @@ public class OkGlass extends JavaPlugin {
 		}		
 	}
 	
+	
 	public void reloadCfg(){
 		vcheck = getConfig().getBoolean("general.check-updates",true);
 		getConfig().set("general.check-updates", vcheck);
@@ -72,9 +81,23 @@ public class OkGlass extends JavaPlugin {
 		refreshdelay = getConfig().getInt("OkGlass.display-refresh-delay",10);
 		getConfig().set("OkGlass.display-refresh-delay", refreshdelay);
 		
+		brdname = getConfig().getString("OkGlass.title","&6OK'GLASS");
+		getConfig().set("OkGlass.title", brdname);
+		
+		defaultcolor = getConfig().getString("OkGlass.default-color","a");
+		getConfig().set("OkGlass.default-color", defaultcolor);
+		
+		debug = getConfig().getBoolean("OkGlass.debug",false);
+		getConfig().set("OkGlass.debug", debug);
+		
 		saveConfig();
 	}
 
-
+	@Override
+	public void onDisable(){
+		gadgets.disableAllGadgets();
+	}
+	
+	
 
 }
