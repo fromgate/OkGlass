@@ -3,7 +3,7 @@
  *  (c)2013, fromgate, fromgate@gmail.com
  *  http://dev.bukkit.org/server-mods/okglass/
  *    
- *  This file is part of CPFix.
+ *  This file is part of OkGlass.
  *  
  *  OkGlass is free software: you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with CPFix.  If not, see <http://www.gnorg/licenses/>.
+ *  along with OkGlass.  If not, see <http://www.gnorg/licenses/>.
  * 
  */
 
@@ -28,6 +28,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class OkGlass extends JavaPlugin {
 	public OGUtil u;
+	private OKListener l;
 	
 	boolean vcheck=false;
 	boolean language_save=false;
@@ -37,28 +38,24 @@ public class OkGlass extends JavaPlugin {
 	String brdname = "&6OK'GLASS";
 	boolean debug = false;
 	String defaultcolor = "a";
-	
+	boolean autoshow = false;
 	
 	Gadgets gadgets;
 	
 	
 	/* 
 	 * TODO
-	 * + Поддержка персональных гаджетов - т.е. отрисовка гаджета применительно к имени игрока
-	 * + Возможность смены заголовка окна
-	 * + Исправить пермишен
-	 * - не отрисовывать, а обновлять гаджеты
-	 * +/- GadgetEntity - выдает null
-	 * +/- неверно отображение памяти (преобразование long в int???)
-	 * 
+	 * - поддержка каналов для гаджетов
 	 */
 	
 	@Override
 	public void onEnable() {
 		reloadCfg();
 		u = new OGUtil(this, vcheck, language_save, language, "okglass", "OkGlass", "okglass", "&b[&3OkGlass&b] ");
+		l = new OKListener (this);
 		gadgets = new Gadgets(this);
 		getCommand("okglass").setExecutor(u);
+		getServer().getPluginManager().registerEvents(l, this);
 		
 		try {
 			MetricsLite metrics = new MetricsLite(this);
@@ -80,6 +77,9 @@ public class OkGlass extends JavaPlugin {
 		
 		refreshdelay = getConfig().getInt("OkGlass.display-refresh-delay",10);
 		getConfig().set("OkGlass.display-refresh-delay", refreshdelay);
+		
+		autoshow = getConfig().getBoolean("OkGlass.show-display-after-login",false);
+		getConfig().set("OkGlass.show-display-after-login", autoshow);
 		
 		brdname = getConfig().getString("OkGlass.title","&6OK'GLASS");
 		getConfig().set("OkGlass.title", brdname);

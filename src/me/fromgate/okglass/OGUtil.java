@@ -3,7 +3,7 @@
  *  (c)2013, fromgate, fromgate@gmail.com
  *  http://dev.bukkit.org/server-mods/okglass/
  *    
- *  This file is part of CPFix.
+ *  This file is part of OkGlass.
  *  
  *  OkGlass is free software: you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with CPFix.  If not, see <http://www.gnorg/licenses/>.
+ *  along with OkGlass.  If not, see <http://www.gnorg/licenses/>.
  * 
  */
 
@@ -40,8 +40,8 @@ public class OGUtil extends FGUtilCore implements CommandExecutor {
 	
 	public void initCommands(){
 		addCmd("help", "config", "hlp_thishelp", "/gadget help");
-		addCmd("show", "showhide", "hlp_show", "/gadget [show]");
-		addCmd("hide", "showhide", "hlp_hide", "/gadget hide");
+		addCmd("show", "show", "hlp_show", "/gadget [show]");
+		addCmd("hide", "show", "hlp_hide", "/gadget hide");
 		addCmd("cfg", "config", "hlp_cfg", "/gadget cfg");
 		addCmd("reload", "config", "hlp_reload", "/gadget reload");
 	}
@@ -54,14 +54,14 @@ public class OGUtil extends FGUtilCore implements CommandExecutor {
 			else {
 				plg.gadgets.setPlayerCanSeeGadget(p, true);
 				printEnDis(p, "msg_cmdshow",true);
-				plg.gadgets.sendGadgetsToAll();
+				plg.gadgets.refreshGadgets(p);
 			}
 		} else if (cmd.equalsIgnoreCase("hide")){
 			if (!plg.gadgets.isPlayerCanSeeGadget(p)) printMSG (p,"msg_alreadyhidden");
 			else {
 				plg.gadgets.setPlayerCanSeeGadget(p, false);
 				printEnDis(p, "msg_cmdshow",false);
-				plg.gadgets.sendGadgetsToAll();
+				plg.gadgets.clearGadgets(p);
 			}
 		} else if (cmd.equalsIgnoreCase("reload")){
 			plg.gadgets.clearGadgets();
@@ -69,7 +69,7 @@ public class OGUtil extends FGUtilCore implements CommandExecutor {
 			plg.gadgets.init();
 			plg.reloadConfig();
 			plg.reloadCfg();
-			plg.gadgets.sendGadgetsToAll();
+			plg.gadgets.sendGadgetsToAllPlayers();
 			printMSG(p,"msg_reload");
 		} else if (cmd.equalsIgnoreCase("cfg")){
 			printConfig(p, 1, 1000, false, true);
@@ -94,8 +94,7 @@ public class OGUtil extends FGUtilCore implements CommandExecutor {
 		addMSG ("cfgmsg_OkGlass.title", "OkGlass window title (default: OK'GLASS): %1%");
 		addMSG ("cfgmsg_OkGlass.debug", "Debug mode: %1%");
 		addMSG ("cfgmsg_OkGlass.default-color", "Default color of the gadget's title: %1%");
-		
-		
+		addMSG ("cfgmsg_OkGlass.show-display-after-login", "Show display automatically (after login): %1%");
 	}
 	
 	@Override

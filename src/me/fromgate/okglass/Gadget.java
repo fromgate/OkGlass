@@ -3,7 +3,7 @@
  *  (c)2013, fromgate, fromgate@gmail.com
  *  http://dev.bukkit.org/server-mods/okglass/
  *    
- *  This file is part of CPFix.
+ *  This file is part of OkGlass.
  *  
  *  OkGlass is free software: you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with CPFix.  If not, see <http://www.gnorg/licenses/>.
+ *  along with OkGlass.  If not, see <http://www.gnorg/licenses/>.
  * 
  */
 package me.fromgate.okglass;
@@ -38,8 +38,7 @@ public abstract class Gadget {
 	boolean enabled = true;
 	private Player currentplayer = null;
 	private Map<String,Integer> result;
-	
-	
+	private String perm = "okglass.show";
 	
 	public boolean isEnabled(){
 		return enabled;
@@ -53,6 +52,7 @@ public abstract class Gadget {
 		this.cfg = cfg;
 		plg = plugin;
 		setEnabled(loadBoolean ("enabled",true));
+		
 		try{
 		if (this.enabled) onEnable();
 		} catch (Throwable e){
@@ -60,6 +60,7 @@ public abstract class Gadget {
 			if (plg.debug) e.printStackTrace();
 			this.enabled = false;
 		}
+		perm = (loadStr("permission",perm));
 	}
 	
 	protected void disableGadget(){
@@ -129,6 +130,14 @@ public abstract class Gadget {
 	
 	public JavaPlugin getOkGlassPlugin(){
 		return plg;
+	}
+	
+	public boolean hasPermission (Player p){
+		return p.hasPermission(perm);
+	}
+
+	public void setPermission (String permission){
+		this.perm = permission;
 	}
 	
 	public abstract void onEnable();	

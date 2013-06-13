@@ -3,7 +3,7 @@
  *  (c)2013, fromgate, fromgate@gmail.com
  *  http://dev.bukkit.org/server-mods/okglass/
  *    
- *  This file is part of CPFix.
+ *  This file is part of OkGlass.
  *  
  *  OkGlass is free software: you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with CPFix.  If not, see <http://www.gnorg/licenses/>.
+ *  along with OkGlass.  If not, see <http://www.gnorg/licenses/>.
  * 
  */
 package me.fromgate.okglass;
@@ -47,14 +47,12 @@ public class Gadgets {
 	OkGlass plg;
 	OGUtil u;
 	List<Gadget> gadgets;
-	Scoreboard brd;
 
 	public Gadgets (OkGlass plg){
 		this.plg = plg;
 		this.u = plg.u;
 		this.gadgets = new ArrayList<Gadget>();
 		init();
-		initScoreBoard();
 		refreshTicks();
 	}
 
@@ -114,7 +112,7 @@ public class Gadgets {
 							u.log("Gadget loaded: "+g.getGadgetName());
 						} else u.log("Gadjet "+g.getGadgetName()+" was not loaded (disabled at the gadgets.yml)");
 					} catch (Exception e3){
-						u.log("Failed to gadget(s) from class: "+className);
+						u.log("Failed to load gadget(s) from class: "+className);
 						continue;
 					}
 				}
@@ -127,22 +125,54 @@ public class Gadgets {
 
 
 	}
-
-	public void initScoreBoard(){
-		brd = plg.getServer().getScoreboardManager().getNewScoreboard();
+	
+	
+	public Scoreboard getScoreBoard(Player p){
+		if (p.getScoreboard() != null) return p.getScoreboard();
+		Scoreboard brd = plg.getServer().getScoreboardManager().getNewScoreboard();
 		Objective obj = brd.getObjective(getTitle());
 		if (obj == null) obj = brd.registerNewObjective(getTitle(), "dummy");
+		p.setScoreboard(brd);
+		return brd;
 	}
 
+	/*public Scoreboard initScoreBoard(){
+		Scoreboard brd = plg.getServer().getScoreboardManager().getNewScoreboard();
+		Objective obj = brd.getObjective(getTitle());
+		if (obj == null) obj = brd.registerNewObjective(getTitle(), "dummy");
+		return brd;
+	}*/
 
+	public void clearGadgets(Player p){
+		Scoreboard brd = getScoreBoard(p);
+		Objective obj = brd.getObjective(getTitle());
+		if (obj == null) obj = brd.registerNewObjective(getTitle(), "dummy");
+		for (OfflinePlayer op : brd.getPlayers())
+			brd.resetScores(op);
+		//p.setScoreboard(brd);
+	}
+
+	public void clearGadgets(){
+		for (Player p : Bukkit.getOnlinePlayers())
+			clearGadgets(p);
+	}
+	
+	public Objective getObjective(Scoreboard brd){
+		Objective obj = brd.getObjective(getTitle());
+		if (obj != null) return obj; 
+		obj = brd.registerNewObjective(getTitle(), "dummy");
+		obj.setDisplaySlot(DisplaySlot.SIDEBAR);
+		return obj;
+	}
+	
 	public void refreshGadgets(Player p){
 		if (gadgets.isEmpty()) return;
 		Set<String> showngadgets  = new HashSet<String>();
-		Objective obj = brd.getObjective(getTitle());
-		if (obj == null) obj = brd.registerNewObjective(getTitle(), "dummy");
-		obj.setDisplaySlot(DisplaySlot.SIDEBAR);
+		Scoreboard brd = getScoreBoard(p);
+		Objective obj = getObjective(brd);
 		for (int i = gadgets.size()-1; i>=0; i--){
 			Gadget g = gadgets.get(i);
+			if (!g.hasPermission(p)) continue;
 			try {
 				Map<String,Integer> rst = g.getGadgetResult(p);
 				if ((rst == null)||(rst.isEmpty())) continue; //пустых пропускаем
@@ -151,7 +181,6 @@ public class Gadgets {
 					showngadgets.add(key);
 					score.setScore(rst.get(key));
 				}
-
 			} catch (Exception e){
 				u.log("Failed to interact with gadget "+g.getGadgetName()+". Gadget was disabled.");
 				gadgets.remove(i);
@@ -165,29 +194,14 @@ public class Gadgets {
 		for (OfflinePlayer op : brd.getPlayers())
 			if (!showngadgets.contains(op.getName()))
 				brd.resetScores(op);
+		//p.setScoreboard(brd);
 	}
-
-	public void clearGadgets(){
-		Objective obj = brd.getObjective(getTitle());
-		if (obj == null) obj = brd.registerNewObjective(getTitle(), "dummy");
-		for (OfflinePlayer op : brd.getPlayers())
-			brd.resetScores(op);
-	}
-
-	public void sendGadgetsToAll(){
-		Set<Player> cansee = new HashSet<Player>();
-		//clearGadgets();
+	
+	public void sendGadgetsToAllPlayers(){
 		for (Player p : Bukkit.getOnlinePlayers()){
-			if (!p.hasPermission("okglass.showhide")) continue;
-			p.setScoreboard(brd);
-			if (isPlayerCanSeeGadget(p)) cansee.add(p);
-		}
-
-		if (!cansee.isEmpty()){
-			for (Player p : cansee) {
-				refreshGadgets(p);	
-				p.setScoreboard(brd);
-			}
+			if (!p.hasPermission("okglass.show")) continue;
+			if (isPlayerCanSeeGadget(p)) refreshGadgets(p);
+			else clearGadgets(p);
 		}
 	}
 
@@ -205,7 +219,7 @@ public class Gadgets {
 		Bukkit.getScheduler().runTaskTimerAsynchronously(plg, new Runnable(){
 			@Override
 			public void run() {
-				sendGadgetsToAll();
+				sendGadgetsToAllPlayers();
 			}
 		}, 200,20*plg.refreshdelay);
 	}

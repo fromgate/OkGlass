@@ -3,7 +3,7 @@
  *  (c)2013, fromgate, fromgate@gmail.com
  *  http://dev.bukkit.org/server-mods/okglass/
  *    
- *  This file is part of CPFix.
+ *  This file is part of OkGlass.
  *  
  *  OkGlass is free software: you can redistribute it and/or modify
  *	it under the terms of the GNU General Public License as published by
@@ -16,11 +16,12 @@
  *  GNU General Public License for more details.
  *
  *  You should have received a copy of the GNU General Public License
- *  along with CPFix.  If not, see <http://www.gnorg/licenses/>.
+ *  along with OkGlass.  If not, see <http://www.gnorg/licenses/>.
  * 
  */
 package me.fromgate.okglass;
 
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -36,9 +37,12 @@ public class OKListener implements Listener{
 	
 	@EventHandler(priority=EventPriority.NORMAL)
 	public void onJoin (PlayerJoinEvent event){
-		plg.u.UpdateMsg(event.getPlayer());
-		plg.gadgets.setPlayerCanSeeGadget(event.getPlayer(), true);
-		plg.gadgets.refreshGadgets(event.getPlayer());
+		Player p = event.getPlayer();
+		plg.u.UpdateMsg(p);
+		if (plg.autoshow&&p.hasPermission("okglass.show")){
+			plg.gadgets.setPlayerCanSeeGadget(p, true);
+			plg.gadgets.refreshGadgets(p);
+		}
 	}
 
 }
