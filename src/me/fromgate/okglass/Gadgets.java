@@ -26,6 +26,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -47,11 +48,13 @@ public class Gadgets {
 	OkGlass plg;
 	OGUtil u;
 	List<Gadget> gadgets;
+	Map<String,Scoreboard> brds;
 
 	public Gadgets (OkGlass plg){
 		this.plg = plg;
 		this.u = plg.u;
 		this.gadgets = new ArrayList<Gadget>();
+		this.brds = new HashMap<String,Scoreboard>();
 		init();
 		refreshTicks();
 	}
@@ -126,22 +129,20 @@ public class Gadgets {
 
 	}
 	
+	public void resetScoreBoard (Player p){
+		Scoreboard brd =plg.getServer().getScoreboardManager().getNewScoreboard();
+		Objective obj = brd.getObjective(getTitle());
+		if (obj == null) obj = brd.registerNewObjective(getTitle(), "dummy");
+		obj.setDisplaySlot(DisplaySlot.SIDEBAR);
+		p.setScoreboard(brd);
+		brds.put(p.getName(), brd);
+	}
 	
 	public Scoreboard getScoreBoard(Player p){
-		if (p.getScoreboard() != null) return p.getScoreboard();
-		Scoreboard brd = plg.getServer().getScoreboardManager().getNewScoreboard();
-		Objective obj = brd.getObjective(getTitle());
-		if (obj == null) obj = brd.registerNewObjective(getTitle(), "dummy");
-		p.setScoreboard(brd);
-		return brd;
+		if (brds.containsKey(p.getName())) return brds.get(p.getName());
+		resetScoreBoard(p);
+		return brds.get(p.getName());
 	}
-
-	/*public Scoreboard initScoreBoard(){
-		Scoreboard brd = plg.getServer().getScoreboardManager().getNewScoreboard();
-		Objective obj = brd.getObjective(getTitle());
-		if (obj == null) obj = brd.registerNewObjective(getTitle(), "dummy");
-		return brd;
-	}*/
 
 	public void clearGadgets(Player p){
 		Scoreboard brd = getScoreBoard(p);
@@ -149,7 +150,6 @@ public class Gadgets {
 		if (obj == null) obj = brd.registerNewObjective(getTitle(), "dummy");
 		for (OfflinePlayer op : brd.getPlayers())
 			brd.resetScores(op);
-		//p.setScoreboard(brd);
 	}
 
 	public void clearGadgets(){
@@ -194,7 +194,6 @@ public class Gadgets {
 		for (OfflinePlayer op : brd.getPlayers())
 			if (!showngadgets.contains(op.getName()))
 				brd.resetScores(op);
-		//p.setScoreboard(brd);
 	}
 	
 	public void sendGadgetsToAllPlayers(){

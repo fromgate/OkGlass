@@ -39,6 +39,7 @@ public class OKListener implements Listener{
 	public void onJoin (PlayerJoinEvent event){
 		Player p = event.getPlayer();
 		plg.u.UpdateMsg(p);
+		plg.gadgets.resetScoreBoard(p);
 		if (plg.autoshow&&p.hasPermission("okglass.show")){
 			plg.gadgets.setPlayerCanSeeGadget(p, true);
 			plg.gadgets.refreshGadgets(p);

@@ -38,7 +38,7 @@ public abstract class Gadget {
 	boolean enabled = true;
 	private Player currentplayer = null;
 	private Map<String,Integer> result;
-	private String perm = "okglass.show";
+	private String perm = "okglass.gadgets";
 	
 	public boolean isEnabled(){
 		return enabled;

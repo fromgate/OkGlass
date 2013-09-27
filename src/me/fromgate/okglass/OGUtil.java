@@ -22,6 +22,7 @@
 
 package me.fromgate.okglass;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -67,6 +68,8 @@ public class OGUtil extends FGUtilCore implements CommandExecutor {
 			plg.gadgets.clearGadgets();
 			plg.gadgets.disableAllGadgets();
 			plg.gadgets.init();
+			for (Player rp : Bukkit.getOnlinePlayers())
+				plg.gadgets.resetScoreBoard(rp);
 			plg.reloadConfig();
 			plg.reloadCfg();
 			plg.gadgets.sendGadgetsToAllPlayers();
