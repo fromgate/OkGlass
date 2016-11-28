@@ -12,6 +12,7 @@
     <modules>
         <module>Plugin</module>
         <module>Gadgets</module>
+        <module>Location</module>
     </modules>
 
 
