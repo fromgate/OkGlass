@@ -39,6 +39,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 public class Gadgets {
+
     OkGlass plg;
     OGUtil u;
     List<Gadget> gadgets;
@@ -55,6 +56,7 @@ public class Gadgets {
 
     public void init() {
         gadgets.clear();
+        plg.saveDefaultGadgets();
         loadGadgetsFromJar();
     }
 
@@ -68,7 +70,10 @@ public class Gadgets {
         }
 
         File dir = new File(plg.getDataFolder() + File.separator + "Gadgets");
-        if (!dir.exists()) return;
+        if (!dir.exists()) {
+            dir.mkdirs();
+            return;
+        }
         if (!dir.isDirectory()) return;
 
         File[] fl = dir.listFiles();

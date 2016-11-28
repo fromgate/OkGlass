@@ -1,10 +1,10 @@
 name: OkGlass
 main: me.fromgate.okglass.OkGlass
-version: 0.2.1
+version: 0.2.2
 author: fromgate, fromgate@gmail.com
 commands:
    okglass:
-      aliases: [okg]
+      aliases: [okg, ok]
       description: Ok'Glass command
       usage: |
            /okglass help

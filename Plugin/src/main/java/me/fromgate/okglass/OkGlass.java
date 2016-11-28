@@ -24,6 +24,8 @@ package me.fromgate.okglass;
 
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.IOException;
+
 public class OkGlass extends JavaPlugin {
     public OGUtil u;
     private OKListener l;
@@ -32,6 +34,7 @@ public class OkGlass extends JavaPlugin {
     boolean language_save = false;
     String language = "english";
     int refreshdelay = 10;
+    boolean updateDefaultGadgets = true;
 
     String brdname = "&6OK'GLASS";
     boolean debug = false;
@@ -55,12 +58,11 @@ public class OkGlass extends JavaPlugin {
         getCommand("okglass").setExecutor(u);
         getServer().getPluginManager().registerEvents(l, this);
 
-		/*
 		try {
 			MetricsLite metrics = new MetricsLite(this);
 			metrics.start();
 		} catch (IOException e) {
-		}		 */
+		}
     }
 
 
@@ -73,6 +75,9 @@ public class OkGlass extends JavaPlugin {
 
         language_save = getConfig().getBoolean("general.language-save", false);
         getConfig().set("general.language-save", language_save);
+
+        updateDefaultGadgets = getConfig().getBoolean("OkGlass.save-default-gadgets", true);
+        getConfig().set("OkGlass.save-default-gadgets", updateDefaultGadgets);
 
         refreshdelay = getConfig().getInt("OkGlass.display-refresh-delay", 10);
         getConfig().set("OkGlass.display-refresh-delay", refreshdelay);
@@ -98,4 +103,9 @@ public class OkGlass extends JavaPlugin {
     }
 
 
+    public void saveDefaultGadgets() {
+        if (updateDefaultGadgets){
+            saveResource("Gadgets/Gadgets.jar", true);
+        }
+    }
 }
