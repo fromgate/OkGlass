@@ -23,7 +23,6 @@ package me.fromgate.okglass;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
@@ -48,8 +47,8 @@ public class Gadgets {
     public Gadgets(OkGlass plg) {
         this.plg = plg;
         this.u = plg.u;
-        this.gadgets = new ArrayList<Gadget>();
-        this.brds = new HashMap<String, Scoreboard>();
+        this.gadgets = new ArrayList<>();
+        this.brds = new HashMap<>();
         init();
         refreshTicks();
     }
@@ -143,8 +142,11 @@ public class Gadgets {
         Scoreboard brd = getScoreBoard(p);
         Objective obj = brd.getObjective(getTitle());
         if (obj == null) obj = brd.registerNewObjective(getTitle(), "dummy");
-        for (OfflinePlayer op : brd.getPlayers())
-            brd.resetScores(op);
+
+        for (String entry : brd.getEntries()) {
+            brd.resetScores(entry);
+        }
+
     }
 
     public void clearGadgets() {
@@ -187,9 +189,11 @@ public class Gadgets {
                 if (plg.debug) e.printStackTrace();
             }
         }
-        for (OfflinePlayer op : brd.getPlayers())
-            if (!showngadgets.contains(op.getName()))
+        for (String op : brd.getEntries()) {
+            if (!showngadgets.contains(op)) {
                 brd.resetScores(op);
+            }
+        }
     }
 
     public void sendGadgetsToAllPlayers() {
